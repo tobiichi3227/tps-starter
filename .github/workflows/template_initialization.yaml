@@ -17,7 +17,7 @@ jobs:
       - run: |
           mv README.template.md README.md
 
-      - name: Replace tokens in README.MD and package.json
+      - name: Replace tokens in README.md
         uses: cschleiden/replace-tokens@v1
         with:
           files: '["README.md"]'
@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -am "Replacing the template's placeholders"
+          git commit -am "Replace the template's placeholders"
 
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
