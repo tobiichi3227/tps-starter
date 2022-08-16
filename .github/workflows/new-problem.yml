@@ -1,0 +1,64 @@
+name: New problem
+
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        description: 'Problem labels to create (A-Z, single uppercase character, without "p"-prefix)'
+
+jobs:
+  create:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install dos2unix python3-setuptools
+          sudo python3 -m pip install psutil
+
+      - name: Install tps
+        run: |
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/ioi-2017/tps/master/online-installer/install.sh)"
+
+      - name: Download templates
+        uses: actions/checkout@v3
+        with:
+          repository: 'TNFSH-Programming-Contest/tps-task-templates'
+          path: 'tps-task-templates'
+
+      - name: Check envs
+        run: |
+          pwd
+          ls
+          git status
+
+      - name: New problem
+        run: |
+          tps init p${{ inputs.label }} -T tps-task-templates
+
+      - name: Check envs
+        run: |
+          pwd
+          ls
+          git status
+
+      - name: Commit files
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add p${{ inputs.label }}
+          echo "Create problem p${{ inputs.label }}
+
+          Co-Authored-By: ${{ github.event.sender.login }} <${{ github.event.sender.id }}+${{ github.event.sender.login }}@users.noreply.github.com>" | git commit --file -
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
