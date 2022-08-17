@@ -3,6 +3,6 @@
 
 ## Quick Links
 
-| ID | statement | gen | validator | solution | tests | config |
+| problem | statement | gen | validator | solution | tests | config |
 | --- | --- | --- | --- | --- | --- | --- |
 <!-- new problem -->

@@ -23,15 +23,29 @@ on:
         default: ''
 
 jobs:
+  problem-list:
+     runs-on: ubuntu-latest
+     outputs:
+        matrix: ${{ steps.problem-list.outputs.matrix }}
+     steps:
+      - uses: actions/checkout@v3
+
+      - name: Read problems
+        id: problem-list
+        run: |
+          problems=$(cat .problems.json)
+          echo "::set-output name=matrix::$problems"
+
   check-push:
+    needs: [problem-list]
     if: ${{ github.event_name == 'push' && github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        problem: [A] # NEWPROBLEM
+        problem: ${{ fromJson(needs.problem-list.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -118,6 +132,14 @@ jobs:
             echo "No changes in subtasks.json for solutions";
           fi
 
+      - name: Remove flags if auto build disabled
+        if: hashFiles(format('p{0}/tests/DISABLE_AUTO_BUILD', matrix.problem)) != ''
+        run: |
+          rm -f /home/runner/flags/build-tests/${{ matrix.problem }}
+          rm -f /home/runner/flags/build-input/${{ matrix.problem }}
+          rm -f /home/runner/flags/build-output/${{ matrix.problem }}
+          rm -f /home/runner/flags/run-solutions/${{ matrix.problem }}
+
       - name: Upload flags
         uses: actions/upload-artifact@v2
         with:
@@ -125,11 +147,12 @@ jobs:
           path: /home/runner/flags/
 
   check-manually:
+    needs: [problem-list]
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        problem: [A] # NEWPROBLEM
+        problem: ${{ fromJson(needs.problem-list.outputs.matrix) }}
 
     steps:
       - name: Make flags dir
@@ -225,7 +248,7 @@ jobs:
         problem: ${{ fromJson(needs.check-post.outputs.build-tests) }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup git
         run: |

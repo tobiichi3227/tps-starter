@@ -19,15 +19,29 @@ on:
         default: ''
 
 jobs:
+  problem-list:
+     runs-on: ubuntu-latest
+     outputs:
+        matrix: ${{ steps.problem-list.outputs.matrix }}
+     steps:
+      - uses: actions/checkout@v3
+
+      - name: Read problems
+        id: problem-list
+        run: |
+          problems=$(cat .problems.json)
+          echo "::set-output name=matrix::$problems"
+
   check-push:
+    needs: [problem-list]
     if: ${{ github.event_name == 'push' && github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        problem: [A]
+        problem: ${{ fromJson(needs.problem-list.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -72,6 +86,11 @@ jobs:
             echo "No changes in subtasks.json for pdf";
           fi
 
+      - name: Remove flags if auto build disabled
+        if: hashFiles(format('p{0}/statement/DISABLE_AUTO_BUILD', matrix.problem)) != ''
+        run: |
+          rm -f /home/runner/flags/${{ matrix.problem }}
+
       - name: Upload flags
         uses: actions/upload-artifact@v2
         with:
@@ -79,11 +98,12 @@ jobs:
           path: /home/runner/flags/
 
   check-manually:
+    needs: [problem-list]
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        problem: [A]
+        problem: ${{ fromJson(needs.problem-list.outputs.matrix) }}
 
     steps:
       - name: Make flags dir
@@ -102,13 +122,35 @@ jobs:
           name: flags
           path: /home/runner/flags/
 
-  build-pdf:
+  check-post:
     needs: [check-push, check-manually]
-    if: always() && github.repository != 'TNFSH-Programming-Contest/tps-starter'
+    if: always()
+    runs-on: ubuntu-latest
+    outputs:
+      problems: ${{ steps.check-post.outputs.problems }}
+
+    steps:
+      - name: Download flags
+        uses: actions/download-artifact@v2
+        with:
+          name: flags
+          path: /home/runner/flags/
+
+      - name: Check target
+        id: check-post
+        working-directory: /home/runner/flags/
+        run: |
+          probs=$(ls -m .)
+          echo $probs
+          echo "::set-output name=problems::$probs"
+
+  build-pdf:
+    needs: check-post
+    if: always() && needs.check-post.outputs.problems != ''
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Download flags
         uses: actions/download-artifact@v2
@@ -128,8 +170,6 @@ jobs:
 
       - name: Install xetex
         run: |
-          sudo add-apt-repository ppa:jonathonf/texlive-2019
-          sudo apt-get update
           sudo apt-get install texlive-xetex
 
       - name: Install fonts
@@ -165,16 +205,8 @@ jobs:
           echo ""
           pdfunite -v
 
-      - name: Check target
-        id: target
-        working-directory: /home/runner/flags/
-        run: |
-          probs=$(ls -m .)
-          echo $probs
-          echo "::set-output name=problems::$probs"
-
       - name: Build cover
-        if: contains(steps.target.outputs.problems, 'A')
+        if: contains(needs.check-post.outputs.problems, 'A')
         run: |
           xelatex cover.tex
 
@@ -185,14 +217,14 @@ jobs:
           done
 
       - name: Merge cover into pA
-        if: contains(steps.target.outputs.problems, 'A')
+        if: contains(needs.check-post.outputs.problems, 'A')
         run: |
           pdfunite cover.pdf pA/statement/index.pdf pA/statement/index-with-cover.pdf
           rm pA/statement/index.pdf
           mv pA/statement/index-with-cover.pdf pA/statement/index.pdf
 
       - name: Merge pdfs
-        if: contains(steps.target.outputs.problems, '+')
+        if: contains(needs.check-post.outputs.problems, '+')
         run: |
           mkdir -p pA/attachments
           pdfunite pA/statement/index.pdf `# NEWPROBLEM` pA/attachments/problems.pdf
