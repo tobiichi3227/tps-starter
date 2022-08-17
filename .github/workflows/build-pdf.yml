@@ -2,6 +2,8 @@ name: Build pdf
 
 on:
   push:
+    branches:
+      - '**'
     paths:
       - '*/scripts/statement.sh'
       - '*/statement/*.jpg'
@@ -19,7 +21,7 @@ on:
 jobs:
   check-push:
     if: ${{ github.event_name == 'push' && github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         problem: [A]
@@ -78,7 +80,7 @@ jobs:
 
   check-manually:
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         problem: [A]
@@ -103,7 +105,7 @@ jobs:
   build-pdf:
     needs: [check-push, check-manually]
     if: always()
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
