@@ -8,3 +8,7 @@
 | problem | statement | gen | validator | solution | tests | config |
 | --- | --- | --- | --- | --- | --- | --- |
 <!-- new problem -->
+
+## Subtasks
+<!-- subtasks start -->
+<!-- subtasks end -->
