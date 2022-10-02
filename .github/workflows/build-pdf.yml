@@ -11,8 +11,9 @@ on:
       - '*/statement/index.md'
       - '*/problem.json'
       - '*/subtasks.json'
-      - 'template.tex'
+      - 'appendix.tex'
       - 'cover.tex'
+      - 'template.tex'
   workflow_dispatch:
     inputs:
       problems:
@@ -25,7 +26,6 @@ on:
 
 jobs:
   run:
-    if: ${{ github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
     uses: TNFSH-Programming-Contest/tps-actions/.github/workflows/build-pdf.yml@main
     with:
       problems: ${{ inputs.problems }}

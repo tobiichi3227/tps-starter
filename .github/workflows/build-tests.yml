@@ -7,6 +7,7 @@ on:
     paths:
       - '*/gen/**'
       - '*/solution/**'
+      - '*/validator/**'
       - '*/problem.json'
       - '*/solutions.json'
       - '*/subtasks.json'
@@ -24,7 +25,6 @@ on:
 
 jobs:
   run:
-    if: ${{ github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
     uses: TNFSH-Programming-Contest/tps-actions/.github/workflows/build-tests.yml@main
     with:
       input: ${{ github.event.inputs.input }}

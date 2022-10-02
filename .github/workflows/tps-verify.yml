@@ -13,7 +13,6 @@ on:
 
 jobs:
   run:
-    if: ${{ github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
     uses: TNFSH-Programming-Contest/tps-actions/.github/workflows/tps-verify.yml@main
     with:
       problems: ${{ github.event.inputs.problems }}
