@@ -11,4 +11,4 @@ on:
 jobs:
   run:
     if: ${{ github.repository != 'TNFSH-Programming-Contest/tps-starter' }}
-    uses: TNFSH-Programming-Contest/tps-actions/.github/workflows/list-subtasks.yml@main
+    uses: TNFSH-Programming-Contest/tps-actions/.github/actions/list-subtasks.yml@main
