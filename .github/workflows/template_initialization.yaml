@@ -28,6 +28,13 @@ jobs:
       - name: Remove this workflow, it only needs to be run once.
         run: rm .github/workflows/template_initialization.yaml
 
+      - name: Install Git LFS
+        run: |
+          sudo apt-get install git-lfs -y
+          git lfs install
+          git lfs track "*.in"
+          git lfs track "*.out"
+
       - name: Commit files
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
